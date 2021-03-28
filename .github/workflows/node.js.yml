@@ -11,21 +11,35 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
+    steps:
+    - uses: actions/checkout@v2
+    - run: yarn
+    - run: yarn build
+    - uses: actions/upload-artifact@v2
+      with:
+        name: webpack-output
+        path: public/
+        retention-days: 1
+        
+  test:
+    runs-on: ubuntu-latest
+    needs: build
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 15.x]
+        node-version: [14.x, 15.x]
         os: [ubuntu-latest, windows-2016]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
     - uses: actions/checkout@v2
+    - uses: actions/download-artifact@v2
+      with:
+        name: webpack-output
+        path: public
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
     - run: yarn
-    - run: yarn build
     - run: yarn test
